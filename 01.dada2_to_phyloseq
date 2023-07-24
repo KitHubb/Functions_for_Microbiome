@@ -1,10 +1,235 @@
 
+
+#____________________________________________________ Package __________________________________________________# 
+```{r}
+library(dada2)
+library(ShortRead)
+library(Biostrings)
+library(dplyr)
+library(ggplot2)
+library(readxl)
+```
+#____________________________________________________ Function  __________________________________________________# 
+
+
+#### dada2 
+01. Dada2_pre <- function (path_cutadapt_output, ) {
+  
+  dir.create("../Dada2/") 
+
+  # 1) intput ____________________________________________________________________________________
+  fnFs.t <- sort(list.files(path, pattern="_1.fastq", full.names = TRUE))
+  fnRs.t <- sort(list.files(path, pattern="_2.fastq", full.names = TRUE))
+
+  sample.names.t <- sapply(strsplit(basename(fnFs.t), "_1.fastq.gz"), `[`, 1)
+  sample.names.t %>% length 
+
+  # 2) trim and filter ____________________________________________________________________________________
+  dir.create("../Dada2/Filter/") 
+  path.f = "../Dada2/Filter"
+
+
+  filtFs.f <- file.path(path.f, "filtered_22", paste0(sample.names.t, "_1_filt.fastq.gz"))
+  filtRs.f <- file.path(path.f, "filtered_22", paste0(sample.names.t, "_2_filt.fastq.gz"))
+  
+  set.seed(42)
+  out.20.EE22 <- dada2::filterAndTrim(fnFs.t, filtFs.f,
+                                      fnRs.t, filtRs.f,
+                                      truncLen=c(260, 260),
+                                      maxN=0, maxEE=c(2,2),
+                                      truncQ=2, rm.phix=TRUE,
+                                      compress=TRUE,
+                                      multithread=FALSE,
+                                      verbose=TRUE)
+  out.20.EE22
+  
+  
+  write.table(out.20.EE22, 
+              "/home/ksy/project/2023/RS/Dada2/QC20/filtered_22/filterAndTrim.tsv", 
+              quote=FALSE, sep="\t", col.names=NA)
+
+```
+
+## trim and filter QC20-trim24
+```{r}
+
+## try 4 ## ____________________________________________________________________
+filtFs.20_24 <- file.path(filtpath.20, "filtered_24", paste0(sample.names.20.t, "_1_filt.fastq.gz"))
+filtRs.20_24 <- file.path(filtpath.20, "filtered_24", paste0(sample.names.20.t, "_2_filt.fastq.gz"))
+head(filtFs.20_24)
+
+# when we do this in terminal, we should change multithread into "FALSE".
+set.seed(3103)
+out.20.EE24 <- dada2::filterAndTrim(fnFs20.t, filtFs.20_24,
+                                    fnRs20.t, filtRs.20_24,
+                                    truncLen=c(260, 260),
+                                    maxN=0, maxEE=c(2,4),
+                                    truncQ=2, rm.phix=TRUE,
+                                    compress=TRUE,
+                                    multithread=FALSE,
+                                    verbose=TRUE)
+out.20.EE24
+
+
+write.table(out.20.EE24, 
+            "/home/ksy/project/2023/RS/Dada2/QC20/filtered_24/filterAndTrim.tsv", 
+            quote=FALSE, sep="\t", col.names=NA)
+
+```
+
+
+## summary
+```{r}
+summary <- data.frame(
+ 
+  'QC20_input' = out.20.EE24[,1],
+  'QC20.EE_24' = out.20.EE24[,2],
+  'QC20.EE_24_percent' = round(out.20.EE24[,2]/out.20.EE24[,1] *100, 1),
+  'QC20.EE_22' = out.20.EE22[,2],
+  'QC20.EE_22_percent' = round(out.20.EE22[,2]/out.20.EE24[,1] *100, 1)
+)
+summary 
+
+
+n = dim(summary)[1]
+summary2 = summary
+summary2[(n+1):(n+3),] <- 0
+rownames(summary2)[(n+1):(n+3)] <- c("Average", "Min",  "Max")
+
+
+for (i in colnames(summary2) ){
+  x <- summary2[,i ]
+  
+  # Average
+  summary2["Average", i] <- round(mean(x),1)
+  
+  # Min 
+  summary2["Min", i] <- round(min(x),1)
+  
+  # Max
+  summary2["Max", i] <- round(max(x),1)
+}
+
+summary2
+
+write.table(summary2, 
+            "/home/ksy/project/2023/RS/Dada2/filterAndTrim_summary.tsv", 
+            quote=FALSE, sep="\t", col.names=NA)
+
+
+
+```
+
+
+
+
+# 2. Error to chimera remove 
+
+## 5) QC20_22
+
+### (1) Generating an error model of our data 
+```{r}
+
+
+# out20.22
+set.seed(3103)
+err_f.20.22 <- learnErrors(filtFs.20_22)
+saveRDS(err_f.20.22, "../Dada2/Error/err_f.QC20.22.rds")
+
+Sys.sleep(60)
+set.seed(3103)
+err_r.20.22 <- learnErrors(filtRs.20_22)
+saveRDS(err_r.20.22, "../Dada2/Error/err_r.QC20.22.rds")
+
+plotErrors(err_f.20.22, nominalQ=TRUE)
+ggsave("../Dada2/Error/plotErrors_f_QC20_22.png", width = 6, height = 6)
+plotErrors(err_r.20.22, nominalQ=TRUE)
+ggsave("../Dada2/Error/plotErrors_r_QC20_22.png", width = 6, height = 6)
+
+
+
+# dada2:::checkConvergence(err_f.15.4) 
+# dada2:::checkConvergence(err_r.15.4)
+
+```
+
+### (2) Inference
+```{r}
+
+set.seed(3103)
+dadaFs.20.22 <- dada(filtFs.20_22, err=err_f.20.22, multithread=TRUE)
+set.seed(3103)
+dadaRs.20.22 <- dada(filtRs.20_22, err=err_r.20.22, multithread=TRUE)
+
+```
+
+### (3) Merging forward and reverse reads
+```{r}
+
+set.seed(3103)
+mergers.20.22 <- dada2::mergePairs(dadaFs.20.22, filtFs.20_22,
+                                   dadaRs.20.22, filtRs.20_22,
+                                   verbose=TRUE) # justConcatenate = FALSE
+
+```
+
+### (4) Construct count table
+```{r}
+#### 07. Construct count table ####
+seqtab.20.22 <- makeSequenceTable(mergers.20.22)
+ 
+dim(seqtab.20.22) 
+
+
+```
+
+### (5) Chimera identification and removal 
+```{r}
+Sys.sleep(15)
+seqtab.nochim.20.22 <- removeBimeraDenovo(seqtab.20.22, method="consensus", 
+                                         multithread=TRUE, verbose=TRUE)
+# 
+dim(seqtab.nochim.20.22)  #  288 4473
+sum(seqtab.nochim.20.22)/sum(seqtab.20.22) #  0.824498
+
+getN <- function(x) sum(getUniques(x))
+
+per <- rowSums(seqtab.nochim.20.22)/out.20.EE22[,"reads.in"]
+per <- per*100
+track.20.22 <- cbind(out.20.EE22,                 # input filtered
+                     sapply(dadaFs.20.22, getN),  # denoisedF
+                     sapply(dadaRs.20.22, getN),  # denoisedR
+                     sapply(mergers.20.22, getN), # merged
+                     rowSums(seqtab.nochim.20.22),# nonchim
+                     round(per, 1))               # total_percents (%)
+
+colnames(track.20.22) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim", "total_percents(%)")
+rownames(track.20.22) <- sample.names.20.t
+
+
+write.table(track.20.22, "../Dada2/Track/track_20_22.tsv", quote=FALSE, sep="\t", col.names=NA)
+track.20.22[,"nonchim"] %>% sum() # 1775211
+
+
+
+
+
+
+
+
+}
+
+
+
+
 #### align_func
 library(DECIPHER)
 library(phangorn)
 
 
 align_func <- function(sequences, filename){
+  dir.create("../Dada2/Align/") 
+
   ## Run sequence alignment (MSA) unsing DECIPHER
   alignment <- AlignSeqs(DNAStringSet(sequences), anchor = NA) # 오전 10:50
   
@@ -100,3 +325,164 @@ to_phyloseq <- function(otu, tax, meta, Tree, filename) {
   saveRDS(Phyloseq, paste0("../Phyloseq/", filename, ".rds") )
 
 }
+
+
+
+#___________________________________________________variable ____________________________________________________
+
+meta <- read_xlsx("../Input/your_metadata.xlsx")
+rownames(meta) <- meta$SampleID
+path = "../Cutadapt"
+
+
+```
+```{r}
+# 1) QC20_22
+dim(seqtab.nochim.20.22)  # 253 4999
+
+Sys.sleep(60)
+set.seed(3103)
+taxa_RDP.20.22 <- assignTaxonomy(
+  seqtab.nochim.20.22,
+  "~/Reference/dada2/RDP/RDP_18/rdp_train_set_18.fa.gz", 
+  multithread=TRUE, tryRC=TRUE)
+
+Sys.sleep(120)
+set.seed(3103)
+taxa_RDP.20.22_sp <- addSpecies(
+  taxa_RDP.20.22, 
+  "~/Reference/dada2/RDP/RDP_18/rdp_species_assignment_18.fa.gz")
+
+unname(taxa_RDP.20.22_sp) # Removing sequence rownames   =  rownames(taxa.print) <- NULL
+
+saveRDS(taxa_RDP.20.22_sp, "../Dada2/Assign/taxa_RDP.20.22_sp.rds")
+dim(taxa_RDP.20.22_sp)
+# taxa_RDP.20.22_sp %>% head
+
+```
+
+```{r}
+# remove : Mitochondria, Chloroplast, Archaea, NA  
+
+# 22 
+otu_t.20.22 <- t(seqtab.nochim.20.22) %>% as.data.frame()
+tax.20.22_sp <- taxa_RDP.20.22_sp   %>% data.frame()
+
+otu_t.20.22  %>% dim() #
+tax.20.22_sp %>% dim() #
+
+# merge
+table.rdp.20.22 <-  merge(otu_t.20.22, tax.20.22_sp, by = 'row.names')
+rownames(table.rdp.20.22) <- table.rdp.20.22$Row.names
+table.rdp.20.22$Row.names <- NULL
+dim(table.rdp.20.22) #
+
+write.csv(table.rdp.20.22, "/home/ksy/project/2023/RS/Dada2/Assign/table_rdp.20.22.csv", 
+          sep = "\t", quote=FALSE, row.names = T, col.names = T)
+
+is.na(table.rdp.20.22) %>% table
+#   FALSE    TRUE 
+#
+
+```
+
+```{r}
+
+# 1) check Chloroplast, Archaea, NA is present in taxa _________________________
+
+  Table.22 <- table.rdp.20.22
+  
+  # Not bacteria?
+  unique(Table.22$Kingdom) # "Bacteria"  NA          "Eukaryota"
+  grepl("Bacteria", Table.22$Kingdom) %>% table() #  FALSE 9
+  
+  # is NA ? 
+  is.na(Table.22$Kingdom) %>% table # TRUE 7
+    # grep(NA, Table.22$Kingdom) %>% length() 
+  
+  # Only bacteria and Others is NA
+  is.na(Table.22$Phylum) %>% table # TRUE 40 
+    # grep("NA", Table.22$Phylum) %>% length() 
+  
+  # Chloroplast
+  table(grepl("Chloroplast", Table.22$Phylum)) # TRUE 52 
+  
+  # Mitochondria
+  table(grepl("Mitochondria", Table.22$Class)) # FALSE 4999 
+  
+  # Archaea
+    # table(grepl("Archaea", Table.22$Kingdom))  
+    # grep("Archaea", Table.22$Kingdom) 
+  
+  # Eukaryota
+  table(grepl("Eukaryota", Table.22$Kingdom))  # TRUE 2 
+
+
+# 2) filtering by taxa _________________________________________________________
+  
+  Table.22.f <- Table.22
+  
+  # remove Not Bacteria =  NA, "Eukaryota"
+  Table.22.f<- Table.22.f %>%  filter(grepl("Bacteria", Table.22.f$Kingdom)) 
+  Table.22.f %>% dim() # 4990  260      
+  
+  # remove Chloroplast 
+  Table.22.f<- Table.22.f %>%  filter(!grepl("Chloroplast", Table.22.f$Phylum)) 
+  dim(Table.22.f) #  4938  260
+  
+  # remove Mitochondria 
+  Table.22.f<- Table.22.f %>%  filter(!grepl("Mitochondria", Table.22.f$Class)) 
+  dim(Table.22.f) #  4938  260
+  
+  
+# 3) filtering by Read Count ___________________________________________________
+
+
+
+# 4) sort by abundance _________________________________________________________
+  col <- ncol(Table.22.f) 
+  Table.22.f.2 <- Table.22.f
+  Table.22.f.2$Sum <- rowSums(Table.22.f.2[,c(1:(col-7))])
+  Table.22.f.2 = Table.22.f.2[order(-Table.22.f.2$Sum),]
+
+
+  
+# 5) Rearrange file  ____________________________________s_______________________
+
+asv_id <- Table.22.f.2[,c(1:(col-7))]%>% colnames() 
+# 중복 확인
+  # names(which(table(Table.22.f.2[,c(1:(122-8))]%>% colnames() ) >= 2))
+tax_id <- Table.22.f.2[,c((col-6):col)]%>% colnames() 
+
+
+# 이름 추출 및 수정 
+asv_id.2 <- sapply(strsplit(basename(asv_id), "_1_filt.fastq.gz"), `[`, 1) 
+asv_id.2
+
+# colname 바꾸기 
+colnames(Table.22.f.2) <- c(asv_id.2, tax_id)
+Table.22.f.2 
+dim(Table.22.f.2) # 4938  261
+write.table(Table.22.f.2,
+            "/home/ksy/project/2023/RS/Dada2/Assign/table_rdp.20.22_filtering.tsv",
+            sep = "\t", quote=FALSE, col.names = T, row.names = T)
+
+```
+
+table.20.22 <- read.table("/home/ksy/project/2023/RS/Dada2/Assign/table_rdp.20.22_filtering.tsv", sep = "\t")
+names(table.20.22) <- sub("^X", "", names(table.20.22))
+
+otu.20.22 <- table.20.22[, 1:253] # 14일에 다시 돌림
+dim(otu.20.22) # 4938  253
+
+## Extract sequence from Dada2 output
+sequences.20.22 <- rownames(otu.20.22)
+names(sequences.20.22) <- sequences.20.22
+sequences.20.22 %>% head
+
+fitGTR.20.22 <- align_func(sequences.20.22)
+
+saveRDS(fitGTR.20.22, "/home/ksy/project/2023/RS/Dada2/Align/fitGTR_20.22.rds")
+
+
+
