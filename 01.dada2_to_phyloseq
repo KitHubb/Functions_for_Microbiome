@@ -44,7 +44,8 @@ tax_clean <- function(table) {
 
 #### to_phylsoeq
 to_phyloseq <- function(otu, tax, meta, Tree, filename) {
-  
+  dir.create("../Phyloseq") 
+
   # metadata 
   sample_n <-   colnames(otu)
   META <- meta[sample_n, ]
