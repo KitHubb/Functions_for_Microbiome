@@ -1,12 +1,13 @@
 ---
-title: "Dada2_to_phyloseq"
+title: "02.Dada2_to_phyloseq"
 author: "kim soyeon"
 date: "2023-07-24"
 output: html_document
 ---
 
 - for 16S rRNA v1-v3 data
--
+
+
 # Package 
 ```{r}
 library(dada2)
