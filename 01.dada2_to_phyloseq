@@ -1,0 +1,73 @@
+
+
+
+#### tax_clean
+tax_clean <- function(table) {
+
+  tax <- table[,c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")]
+  tax
+  
+  # 2) NA -> ""
+  tax[is.na(tax)] <- ""
+  tax[tax=="__"] <- ""
+  tax[tax=="NA"] <- ""
+  
+  
+  # 3) paste [Unclassified + NA] 
+  tax_clean <- tax
+  for (i in 1:nrow(tax_clean)){
+    if (tax_clean[i,7] != ""){
+      tax_clean$Species[i] <- paste(tax_clean$Genus[i], tax_clean$Species[i], sep = " ")
+    } else if (tax_clean[i,2] == ""){
+      kingdom <- paste(tax_clean[i,1],"Unclassified",  sep = " ")
+      tax_clean[i, 2:7] <- kingdom
+    } else if (tax_clean[i,3] == ""){
+      phylum <- paste( tax_clean[i,2],"Unclassified",  sep = " ")
+      tax_clean[i, 3:7] <- phylum
+    } else if (tax_clean[i,4] == ""){
+      class <- paste( tax_clean[i,3],"Unclassified",  sep = " ")
+      tax_clean[i, 4:7] <- class
+    } else if (tax_clean[i,5] == ""){
+      order <- paste( tax_clean[i,4],"Unclassified",  sep = " ")
+      tax_clean[i, 5:7] <- order
+    } else if (tax_clean[i,6] == ""){
+      family <- paste( tax_clean[i,5],"Unclassified",  sep = " ")
+      tax_clean[i, 6:7] <- family
+    } else if (tax_clean[i,7] == ""){
+      tax_clean$Species[i] <- paste(tax_clean$Genus[i],"Unclassified", sep = " ")
+    }
+  }
+  print(tax_clean)
+
+}
+
+
+#### to_phylsoeq
+to_phyloseq <- function(otu, tax, meta, Tree, filename) {
+  
+  # metadata 
+  sample_n <-   colnames(otu)
+  META <- meta[sample_n, ]
+  
+  # otu 
+  OTU <- as.matrix(t(otu))
+  
+  # tax 
+  TAX <- as.matrix(tax_clean(tax))
+  
+  Phyloseq <- phyloseq(otu_table(OTU, taxa_are_rows=FALSE),
+                        sample_data(META),
+                        tax_table(TAX),
+                        phy_tree(Tree))
+  
+  print(Phyloseq)
+  
+  set.seed (42) 
+  phy_tree(Phyloseq) <- 
+    root(phy_tree (Phyloseq), sample(taxa_names (Phyloseq), 1), resolve.root = TRUE) 
+  
+  print(paste0("Root : ", is.rooted(phy_tree(Phyloseq)))) 
+
+  saveRDS(Phyloseq, paste0("../Phyloseq/", filename, ".rds") )
+
+}
