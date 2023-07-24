@@ -12,9 +12,6 @@ library(dada2)
 library(ShortRead)
 library(Biostrings)
 library(dplyr)
-
-
-
 ```
 
 ```{r}
