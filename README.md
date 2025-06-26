@@ -12,6 +12,9 @@ This repository provides a comprehensive R-based toolkit for microbiome data ana
 install.packages(c("phyloseq", "ggplot2", "dplyr", "ggtext", "ggprism", "ggrepel", "patchwork", "broom", "vegan", "glue", "ggpubr", "tidyr", "purrr", "rvg", "officer", "combinat", "RColorBrewer", "GGally"))
 ```
 
+```
+source("./250429_microbiome_analysis_functions.R")
+```
 
 ## 1. Alpha Diversity
 
