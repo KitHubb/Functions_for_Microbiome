@@ -145,11 +145,12 @@ ps_filtered <- filter_phyloseq_by_prevalence_abundance(ps, 0.001, 0.1)
 ---
 
 ## Author
+This script was developed by Soyeon Kim for microbiome analysis pipelines based on the `phyloseq` R package.  
+It is part of a broader effort to support microbial ecology, statistical testing, and reproducible bioinformatics workflows.
 
-This script was developed for microbiome analysis pipelines based on `phyloseq`. Contact the author for details or collaboration.
+📧 Contact: kim.soyeon.bio@gmail.com   
+🔗 Related blog post: https://bio-kcs.tistory.com/
 
 ## License
-
-MIT License.
-
-
+This repository is licensed under the MIT License.  
+You are free to use, modify, and distribute the code with attribution. 
