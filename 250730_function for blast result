@@ -1,0 +1,75 @@
+library(phyloseq)
+library(readr)
+library(dplyr)
+
+replace_tax_with_blast <- function(phyloseq_input, blast_lineage_file, blast_result_file, output_path) {
+  # Input validation
+  if (!inherits(phyloseq_input, "phyloseq")) stop("phyloseq_input must be a phyloseq object")
+  if (!file.exists(blast_lineage_file)) stop("BLAST lineage file does not exist")
+  if (!file.exists(blast_result_file)) stop("BLAST result file does not exist")
+  
+  # 1. Import BLAST results and lineage
+  lineage_out <- readr::read_table(blast_lineage_file) %>% as.data.frame()
+  lineage_out$species <- paste0(lineage_out$species, "_", lineage_out$X9)
+  lineage_out <- lineage_out[-1, ]
+  
+  blast <- readr::read_delim(blast_result_file, col_names = FALSE)
+  colnames(blast) <- c("qacc", "taxid", "sacc", "evalue", "bitscore", "qcovus", "pident", "sscinames", "length")
+  
+  # 2. Merge BLAST and lineage data
+  blast_out <- merge(blast, unique(lineage_out), by = "taxid")
+  
+  # 3. Filter BLAST results
+  blast_out2 <- blast_out %>%
+    unique() %>%
+    dplyr::select(-sacc, -taxid) %>%
+    dplyr::group_by(qacc) %>%
+    dplyr::arrange(desc(pident), desc(qcovus), desc(length), evalue) %>%
+    dplyr::slice(1) %>%
+    dplyr::ungroup() %>%
+    as.data.frame()
+  
+  blast_out3 <- blast_out2 %>%
+    filter(pident > 99 & qcovus > 99 & evalue < 1e-10)
+  
+  # 4. Format BLAST results for tax_table
+  blast_out4 <- blast_out3[, c("qacc", "kingdom", "phylum", "class", "order", "family", "genus", "species")] %>%
+    column_to_rownames("qacc")
+  colnames(blast_out4) <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+  
+  # 5. Extract unidentified taxa from phyloseq
+  ps <- phyloseq_input
+  tax <- tax_table(ps) %>% as.data.frame()
+  tax_un <- tax[grepl("_k$|_p$|_c$|_o$|_f$|_g$", tax$Species), ]
+  seq_un <- rownames(tax_un)
+  
+  # 6. Find intersection of unidentified sequences and BLAST results
+  seq_both <- intersect(rownames(blast_out4), seq_un)
+  blast_trans <- blast_out4[seq_both, ]
+  
+  # 7. Update taxonomic assignments (excluding Kingdom level)
+  tax2 <- tax
+  tax2[seq_both, 2:7] <- blast_trans[seq_both, 2:7]
+  
+  # 8. Combine updated and non-updated taxa
+  tax3 <- rbind(tax2[rownames(tax2) %in% seq_both, ], tax[!rownames(tax) %in% seq_both, ])
+  
+  # 9. Update phyloseq object
+  tax_table(ps) <- as.matrix(tax3)
+  
+  # 10. Save modified phyloseq object
+  saveRDS(ps, output_path)
+  
+  # Return modified phyloseq object
+  return(ps)
+}
+
+# Example usage:
+# ps_input <- readRDS("./Phyloseq/ITS2_paired_ITSxpress_250728_v2.rds")
+# modified_ps <- replace_tax_with_blast(
+#   phyloseq_input = ps_input,
+#   blast_lineage_file = "../Output/dada2_itxpress_merge/BLAST/blast_result_filt_t1_sum.txt",
+#   blast_result_file = "../Output/dada2_itxpress_merge/BLAST/blast_result_filt_t1_sum",
+#   output_path = "./Phyloseq/ITS2_paired_ITSxpress_250730_blast.rds"
+# )
+   
