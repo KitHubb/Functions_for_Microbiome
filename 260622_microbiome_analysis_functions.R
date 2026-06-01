@@ -427,8 +427,7 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
       ggplot(aes(x = Axis.1, y=Axis.2, fill = type)) +
       geom_vline(xintercept = 0, colour = "grey80") +
       geom_hline(yintercept = 0, colour = "grey80") +
-      geom_point(aes_string(shape = shap), 
-                 color = "black",  
+      geom_point(aes_string(shape = shap),   
                  alpha = 0.6, 
                  size=2) +
       stat_ellipse(aes_string(color= type) ) +
@@ -438,7 +437,7 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
         y = paste0("PCoA2 (", PC2, "%)"), 
         x = paste0("PCoA1 (", PC1, "%)")
         ) +
-    annotate("text", hjust = 0, vjust = -0.5, x = -Inf, y = -Inf, size = 3,
+    annotate("text", hjust = 0, vjust = -0.3, x = -Inf, y = -Inf, size = 3,
              label = paste0("   ", Title,
                             '\n   PERMANOVA: R2 = ', Perm.R2, ', p-value = ', Perm.p,
                             '\n   Betadisper: F = ', PMD.f, ', p-value = ', PMD.p)) +
@@ -451,28 +450,7 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
             legend.background = element_rect(fill = NA, color = NA),
             plot.margin = unit(c(0, 0, 0, 0), "points"))
     
-                 
-    #            label= paste0(
-    #              "    ",Title, '
-    # PERMANOVA: R2 = ', Perm.R2,  ', p-value=', Perm.p ,
-    #              '
-    # ANOSIM: R = ', Ans.R,  ', p-value=', Ans.p,
-    #              '
-    # PERMDISP: F = ', PMD.f,  ', p-value=', PMD.p 
-    #            ))
-    # 
-    #  "**PERMANOVA**  R<sup>2</sup>=",Perm.R2, ", *p*-value=", Perm.p, "<br>",
-    #  "**ANOSIM**  R=",    Ans.R,   ", *p*-value=", Ans.p, "<br>",
-    # "**ANOVA**  F=",     Anv.f,   ", *p*-value=", Anv.p ))
-    
-    # ggtext::geom_richtext(label.color = NA, size = 2, fill = NA,
-    #                       hjust = 0, vjust =0, x = -Inf, y = -Inf,   # left bottom
-    #                       #  hjust = 0, vjust =1, x = -Inf, y = Inf, # left upper 
-    #                       label= paste0( "**", Title,"** ",  "<br>",
-    #                                      "**PERMANOVA**  R<sup>2</sup>=",Perm.R2, ", *p*-value=", Perm.p, "<br>", 
-    #                                      "**ANOSIM**  R=",    Ans.R,   ", *p*-value=", Ans.p, "<br>", 
-    #                                      "**ANOVA**  F=",     Anv.f,   ", *p*-value=", Anv.p ) ) 
-    
+
     
     if (col_inout == "in" & col_right_left == "right" ){
       main.plot <- main.plot + theme(
