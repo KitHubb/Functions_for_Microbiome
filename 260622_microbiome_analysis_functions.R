@@ -424,10 +424,10 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
     
     # 4 .draw beta plot 
     main.plot <- pcoa_df %>%
-      ggplot(aes(x = Axis.1, y=Axis.2, fill = type)) +
+      ggplot(aes(x = Axis.1, y=Axis.2)) +
       geom_vline(xintercept = 0, colour = "grey80") +
       geom_hline(yintercept = 0, colour = "grey80") +
-      geom_point(aes_string(shape = shap),   
+      geom_point(aes_string(shape = shap, fill = type),   
                  alpha = 0.6, 
                  size=2) +
       stat_ellipse(aes_string(color= type) ) +
@@ -438,9 +438,11 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
         x = paste0("PCoA1 (", PC1, "%)")
         ) +
     annotate("text", hjust = 0, vjust = -0.3, x = -Inf, y = -Inf, size = 3,
-             label = paste0("   ", Title,
-                            '\n   PERMANOVA: R2 = ', Perm.R2, ', p-value = ', Perm.p,
+             label = paste0('   PERMANOVA: R2 = ', Perm.R2, ', p-value = ', Perm.p,
                             '\n   Betadisper: F = ', PMD.f, ', p-value = ', PMD.p)) +
+        annotate("text", hjust = 0, vjust = +0.3, x = +Inf, y = -Inf, size = 3,
+             label = paste0("   ", Title ) +
+    
       theme_test() +
       theme(plot.caption = element_text(hjust = 0))+
       theme(plot.caption = element_markdown(),
