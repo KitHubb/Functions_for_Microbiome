@@ -433,7 +433,7 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
       labs(y = paste0("PCoA2 (", PC2, "%)"), 
            x = paste0("PCoA1 (", PC1, "%)")
            ) +
-  annotate("text", hjust = 0, vjust = -0.3, x = -Inf, y = -Inf, size = 2,
+  annotate("text", hjust = 0, vjust = -0.3, x = -Inf, y = -Inf, size = 3,
                label = paste0("    ", Title,
                               '\n    PERMANOVA: R2 = ', Perm.R2, ', p-value = ', Perm.p,
                               '\n    Betadisper: F = ', PMD.f, ', p-value = ', PMD.p)) +
