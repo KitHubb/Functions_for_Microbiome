@@ -427,16 +427,18 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
       ggplot(aes(x = Axis.1, y=Axis.2)) +
       geom_vline(xintercept = 0, colour = "grey80") +
       geom_hline(yintercept = 0, colour = "grey80") +
-      geom_point(aes_string(shape = shap, fill=type),alpha = 0.6, size=2) +
+      geom_point(aes_string(shape = shap, fill=type),color = "black",  alpha = 0.6, size=2) +
       stat_ellipse(aes_string(color= type) ) +
       scale_fill_manual(values = type_col) +
-      labs(y = paste0("PCoA2 (", PC2, "%)"), 
-           x = paste0("PCoA1 (", PC1, "%)")
-           ) +
-  annotate("text", hjust = 0, vjust = -1, x = -Inf, y = -Inf, size = 2,
-               label = paste0("    ", Title,
-                              '\n    PERMANOVA: R2 = ', Perm.R2, ', p-value = ', Perm.p,
-                              '\n    Betadisper: F = ', PMD.f, ', p-value = ', PMD.p)) +
+      scale_color_manual(values = type_col) +
+      labs(
+        y = paste0("PCoA2 (", PC2, "%)"), 
+        x = paste0("PCoA1 (", PC1, "%)")
+        ) +
+    annotate("text", hjust = 0, vjust = -0.5, x = -Inf, y = -Inf, size = 3,
+             label = paste0("   ", Title,
+                            '\n   PERMANOVA: R2 = ', Perm.R2, ', p-value = ', Perm.p,
+                            '\n   Betadisper: F = ', PMD.f, ', p-value = ', PMD.p)) +
       theme_test() +
       theme(plot.caption = element_text(hjust = 0))+
       theme(plot.caption = element_markdown(),
