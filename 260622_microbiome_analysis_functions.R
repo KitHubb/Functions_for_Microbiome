@@ -351,12 +351,10 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
   
   # Function to round p-values
   value <- function(val) {
-    if (val > 0.05) {
-      val2 = round(val, 3)
-    } else if (val <= 0.05 & val > 0.001) {
-      val2 = round(val, 3)
-    } else if (val <= 0.001) {
-      val2 = "<0.001"
+    if (val <= 0.001) {
+      val2 <- "<0.001"
+    } else {
+      val2 <- paste0("= ", sprintf("%.3f", val))
     }
     return(val2)
   }
@@ -437,8 +435,8 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
            ) +
   annotate("text", hjust = 0, vjust = -0.3, x = -Inf, y = -Inf, size = 3,
                label = paste0("    ", Title,
-                              '\n    PERMANOVA: R2 = ', Perm.R2, ', p = ', Perm.p,
-                              '\n    Betadisper: F = ', PMD.f, ', p = ', PMD.p)) +
+                              '\n    PERMANOVA: R2 = ', Perm.R2, ', p ', Perm.p,
+                              '\n    Betadisper: F = ', PMD.f, ', p ', PMD.p)) +
       theme_test() +
       theme(plot.caption = element_text(hjust = 0))+
       theme(plot.caption = element_markdown(),
