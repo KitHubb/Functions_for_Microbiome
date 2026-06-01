@@ -424,10 +424,13 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
     
     # 4 .draw beta plot 
     main.plot <- pcoa_df %>%
-      ggplot(aes(x = Axis.1, y=Axis.2)) +
+      ggplot(aes(x = Axis.1, y=Axis.2, fill = type)) +
       geom_vline(xintercept = 0, colour = "grey80") +
       geom_hline(yintercept = 0, colour = "grey80") +
-      geom_point(aes_string(shape = shap, fill=type),color = "black",  alpha = 0.6, size=2) +
+      geom_point(aes_string(shape = shap), 
+                 color = "black",  
+                 alpha = 0.6, 
+                 size=2) +
       stat_ellipse(aes_string(color= type) ) +
       scale_fill_manual(values = type_col) +
       scale_color_manual(values = type_col) +
