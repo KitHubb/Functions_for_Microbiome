@@ -437,8 +437,8 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
            ) +
   annotate("text", hjust = 0, vjust = -0.3, x = -Inf, y = -Inf, size = 3,
                label = paste0("    ", Title,
-                              '\n    PERMANOVA: R2 = ', Perm.R2, ', p-value = ', Perm.p,
-                              '\n    Betadisper: F = ', PMD.f, ', p-value = ', PMD.p)) +
+                              '\n    PERMANOVA: R2 = ', Perm.R2, ', p = ', Perm.p,
+                              '\n    Betadisper: F = ', PMD.f, ', p = ', PMD.p)) +
       theme_test() +
       theme(plot.caption = element_text(hjust = 0))+
       theme(plot.caption = element_markdown(),
