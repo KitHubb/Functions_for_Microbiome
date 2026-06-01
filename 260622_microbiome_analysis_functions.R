@@ -427,9 +427,9 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
       ggplot(aes(x = Axis.1, y=Axis.2)) +
       geom_vline(xintercept = 0, colour = "grey80") +
       geom_hline(yintercept = 0, colour = "grey80") +
-      geom_point(aes_string(shape = shap, color=type),alpha = 0.5, size=2) +
+      geom_point(aes_string(shape = shap, fill=type),alpha = 0.6, size=2) +
       stat_ellipse(aes_string(color= type) ) +
-      scale_color_manual(values = type_col) +
+      scale_fill_manual(values = type_col) +
       labs(y = paste0("PCoA2 (", PC2, "%)"), 
            x = paste0("PCoA1 (", PC1, "%)")
            ) +
