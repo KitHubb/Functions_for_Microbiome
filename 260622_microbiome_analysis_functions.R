@@ -393,7 +393,7 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
     set.seed(seed)
     PMD <- anova(betadisper(x.dist, data.frame(sample_data(phyloseq))[, type]),  permutations = 9999)
     PMD.p <- value(PMD$`Pr(>F)`[1])
-    PMD.f <- value(PMD$`F value`[1])
+    PMD.f <- round(PMD$`F value`[1], 3)
     
     
     # arrange result 
