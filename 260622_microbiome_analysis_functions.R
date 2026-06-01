@@ -97,12 +97,14 @@ alpha_plot <- function(table, x_, y_ = "Shannon", colx_ = x_, ylim = 7, y_kruska
       
       stat_compare_means(method = "kruskal.test",  tip.length=0.00 , # 0.05
                          size = 3,
-                         label.y = y_kruskal, label.x =((Num+1)/2-0.4),
+                         label.y = y_kruskal,
+                         label.x =((Num+1)/2),
+                         hjust = 0.5,
                          aes(label = paste0("kruskal.test, p = ", ..p.format..))
                          # aes(label = paste0("p = ",..p.format..))
       ) +
       geom_pwc(method = "wilcox_test", 
-               label = "p = {ifelse(p < 0.001, '<0.001',p)}{p.signif}",label.size = 3,
+               label = "p = {ifelse(p < 0.001, '<0.001',p.adj)}{p.adj.signif}",label.size = 3,
                tip.length=0.00) 
     
     
