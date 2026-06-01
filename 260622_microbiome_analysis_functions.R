@@ -427,22 +427,16 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
       ggplot(aes(x = Axis.1, y=Axis.2)) +
       geom_vline(xintercept = 0, colour = "grey80") +
       geom_hline(yintercept = 0, colour = "grey80") +
-      geom_point(aes_string(shape = shap, color = type),   
-                 alpha = 0.6, 
-                 size=2) +
+      geom_point(aes_string(shape = shap, color=type),alpha = 0.5, size=2) +
       stat_ellipse(aes_string(color= type) ) +
-      scale_fill_manual(values = type_col) +
       scale_color_manual(values = type_col) +
-      labs(
-        y = paste0("PCoA2 (", PC2, "%)"), 
-        x = paste0("PCoA1 (", PC1, "%)")
-        ) +
-    annotate("text", hjust = 0, vjust = -0.3, x = -Inf, y = -Inf, size = 3,
-             label = paste0('   PERMANOVA: R2 = ', Perm.R2, ', p-value = ', Perm.p,
-                            '\n   Betadisper: F = ', PMD.f, ', p-value = ', PMD.p)) +
-        annotate("text", hjust = 0, vjust = +0.3, x = -Inf, y = +Inf, size = 3,
-             label = paste0("   ", Title )) +
-    
+      labs(y = paste0("PCoA2 (", PC2, "%)"), 
+           x = paste0("PCoA1 (", PC1, "%)")
+           ) +
+  annotate("text", hjust = 0, vjust = -0.3, x = -Inf, y = -Inf, size = 2,
+               label = paste0("    ", Title,
+                              '\n    PERMANOVA: R2 = ', Perm.R2, ', p-value = ', Perm.p,
+                              '\n    Betadisper: F = ', PMD.f, ', p-value = ', PMD.p)) +
       theme_test() +
       theme(plot.caption = element_text(hjust = 0))+
       theme(plot.caption = element_markdown(),
@@ -451,7 +445,6 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
             legend.margin = margin(6, 6, 6, 6),
             legend.background = element_rect(fill = NA, color = NA),
             plot.margin = unit(c(0, 0, 0, 0), "points"))
-    
 
     
     if (col_inout == "in" & col_right_left == "right" ){
@@ -483,6 +476,7 @@ beta_plot <- function(phyloseq, type, shap=NULL, seed=42, plot="PCoA",
   out <- list(plots = plots, results = result_list)
   return(out)
 }
+
 
 
 beta_plot.envfit <- function(phyloseq, type, shap = NULL, seed = 42, plot = "PCoA", 
